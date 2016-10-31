@@ -1,0 +1,26 @@
+{
+  "name": "scrabbler",
+  "version": "1.0.0",
+  "description": "Scrabble player and solver in JavaScript",
+  "main": "dawg-builder.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reid47/scrabbler.git"
+  },
+  "keywords": [
+    "scrabble",
+    "AI",
+    "algorithm",
+    "game",
+    "command-line"
+  ],
+  "author": "Reid Mitchell",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/reid47/scrabbler/issues"
+  },
+  "homepage": "https://github.com/reid47/scrabbler#readme"
+}

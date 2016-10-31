@@ -1,5 +1,4 @@
 var fs = require('fs');
-var microtime = require('microtime');
 
 var config = {
     writeToFile: true,
