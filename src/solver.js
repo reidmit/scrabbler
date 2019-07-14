@@ -96,17 +96,6 @@ function findAnchorSquares(board, row) {
   return anchors;
 }
 
-function arrayContainsPair(array, pair) {
-  var fst = pair[0];
-  var snd = pair[1];
-  for (var i = 0; i < array.length; i++) {
-    if (array[i][0] && array[i][1] && array[i][0] === fst && array[i][1] === snd) {
-      return true;
-    }
-  }
-  return false;
-}
-
 function scoreWord(board, word, direction, startRow, startCol, rowData) {
   var row = startRow;
   var col = startCol;
@@ -206,6 +195,7 @@ function leftPart(
     }
     return;
   }
+
   if (!isEmpty(rack)) {
     // console.log("calling extendRight with partialWord "+partialWord+", rack is "+rack+", anchor is "+anchorRowCol.join(",")); //correct behavior
     extendRight(
@@ -348,17 +338,6 @@ function extendRight(
   }
 }
 
-function printRowCrossChecks(rowData, r) {
-  console.log('row ' + r + ' cross checks:');
-  for (var i = 0; i < rowData.length; i++) {
-    var col = [];
-    Object.keys(rowData[i]).map(function(key) {
-      col.push(key + ':' + rowData[i][key]);
-    });
-    console.log('  ' + i + ': [' + col.join(',') + ']');
-  }
-}
-
 function printMoves(moves) {
   var defaultLimit = 50;
   var limit = moves.length < defaultLimit ? moves.length : defaultLimit;
@@ -399,7 +378,7 @@ function sortByBonus(a, b) {
   return b.bonusSquareCount - a.bonusSquareCount;
 }
 
-function run(gameBoard, rack, strategy) {
+function solve(gameBoard, rack, strategy) {
   legalMoves = [];
 
   console.time('found moves');
@@ -509,4 +488,4 @@ function run(gameBoard, rack, strategy) {
   return legalMoves;
 }
 
-module.exports.solve = run;
+module.exports.solve = solve;
