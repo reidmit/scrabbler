@@ -1,51 +1,5 @@
-const solver = require('./solver.js');
-
-const emptyBoard = [
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
-];
-
-const letterValues = {
-  a: 1,
-  b: 3,
-  c: 3,
-  d: 2,
-  e: 1,
-  f: 4,
-  g: 2,
-  h: 4,
-  i: 1,
-  j: 8,
-  k: 5,
-  l: 1,
-  m: 3,
-  n: 1,
-  o: 1,
-  p: 3,
-  q: 10,
-  r: 1,
-  s: 1,
-  t: 1,
-  u: 1,
-  v: 4,
-  w: 4,
-  x: 8,
-  y: 4,
-  z: 10
-};
+const solver = require('./solver');
+const { emptyBoard, letterValues } = require('./constants');
 
 class Player {
   constructor(name, strategy) {
@@ -56,97 +10,100 @@ class Player {
   }
 }
 
-var Game = function(board, player1, player2) {
-  var self = this;
+class Game {
+  constructor(board, player1, player2) {
+    this.board = board;
+    this.players = [player1, player2];
+    this.moveCount = 0;
+    this.toMove = 0; //for now, player1 always goes first
 
-  self.board = board;
-  self.players = [player1, player2];
-  self.moveCount = 0;
-  self.toMove = 0; //for now, player1 always goes first
+    this.tileBag = {
+      a: 9,
+      b: 2,
+      c: 2,
+      d: 4,
+      e: 12,
+      f: 2,
+      g: 3,
+      h: 2,
+      i: 9,
+      j: 1,
+      k: 1,
+      l: 4,
+      m: 2,
+      n: 6,
+      o: 8,
+      p: 2,
+      q: 1,
+      r: 6,
+      s: 4,
+      t: 6,
+      u: 4,
+      v: 2,
+      w: 2,
+      x: 1,
+      y: 4,
+      z: 1
+    };
 
-  self.tileBag = {
-    a: 9,
-    b: 2,
-    c: 2,
-    d: 4,
-    e: 12,
-    f: 2,
-    g: 3,
-    h: 2,
-    i: 9,
-    j: 1,
-    k: 1,
-    l: 4,
-    m: 2,
-    n: 6,
-    o: 8,
-    p: 2,
-    q: 1,
-    r: 6,
-    s: 4,
-    t: 6,
-    u: 4,
-    v: 2,
-    w: 2,
-    x: 1,
-    y: 4,
-    z: 1
-  };
-  self.tileList = (function() {
+    this.tileList = (() => {
+      var tiles = [];
+      var letters = Object.keys(this.tileBag);
+      letters.forEach(c => {
+        for (var i = 0; i < this.tileBag[c]; i++) {
+          tiles.push(c);
+        }
+      });
+      return tiles;
+    })();
+
+    this.tileCount = 98; //for now, no blank tiles
+    this.isOver = false;
+    this.emptyMoves = 0;
+
+    this.players[0].rack = this.pickTiles(7);
+    this.players[1].rack = this.pickTiles(7);
+  }
+
+  pickTiles(num) {
     var tiles = [];
-    var letters = Object.keys(self.tileBag);
-    letters.forEach(function(c) {
-      for (var i = 0; i < self.tileBag[c]; i++) {
-        tiles.push(c);
-      }
-    });
-    return tiles;
-  })();
-  self.tileCount = 98; //for now, no blank tiles
 
-  self.isOver = false;
-
-  self.emptyMoves = 0;
-
-  self.pickTiles = function(num) {
-    var tiles = [];
-
-    if (num > self.tileCount) {
-      num = self.tileCount;
+    if (num > this.tileCount) {
+      num = this.tileCount;
     }
 
     while (num > 0) {
-      var idx = Math.floor(Math.random() * self.tileList.length);
-      var c = self.tileList[idx];
+      var idx = Math.floor(Math.random() * this.tileList.length);
+      var c = this.tileList[idx];
       tiles.push(c);
-      self.tileBag[c]--;
-      self.tileList.splice(idx, 1);
-      self.tileCount--;
+      this.tileBag[c]--;
+      this.tileList.splice(idx, 1);
+      this.tileCount--;
       num--;
     }
     return tiles;
-  };
+  }
 
-  self.makeMove = function() {
-    var player = self.players[self.toMove];
+  makeMove() {
+    var player = this.players[this.toMove];
 
-    if (self.emptyMoves === 4) {
-      self.isOver = true;
+    if (this.emptyMoves === 4) {
+      this.isOver = true;
       return;
     }
 
-    if (player.rack.length === 0 && self.tileCount === 0) {
-      // self.emptyMoves++;
-      // if (self.emptyMoves === 4) {
-      //     self.isOver = true;
+    if (player.rack.length === 0 && this.tileCount === 0) {
+      // this.emptyMoves++;
+      // if (this.emptyMoves === 4) {
+      //     this.isOver = true;
       // }
-      self.isOver = true;
+      this.isOver = true;
       return;
     }
 
     // console.log(player.name+" has rack ["+player.rack.join(",")+"].");
 
-    var possibleMoves = solver.solve(self.board, player.rack.join(''), player.strategy);
+    var possibleMoves = solver.solve(this.board, player.rack.join(''), player.strategy);
     // console.log(possibleMoves);
 
     if (possibleMoves.length > 0) {
@@ -160,7 +117,7 @@ var Game = function(board, player1, player2) {
       var col = move.col;
       for (var i = 0; i < move.word.length; i++) {
         var c = move.word[i];
-        self.board[row][col] = c;
+        this.board[row][col] = c;
 
         if (move.direction === 'across') {
           col++;
@@ -170,7 +127,7 @@ var Game = function(board, player1, player2) {
       }
 
       // console.log("The new board is...");
-      // solver.print(self.board);
+      // solver.print(this.board);
 
       //Pick new tiles for current player
       for (var i = 0; i < move.lettersUsed.length; i++) {
@@ -178,9 +135,9 @@ var Game = function(board, player1, player2) {
         player.rack.splice(player.rack.indexOf(used), 1);
       }
 
-      var newTiles = self.pickTiles(7 - player.rack.length);
+      var newTiles = this.pickTiles(7 - player.rack.length);
 
-      // console.log("There are "+self.tileCount+" tiles left.");
+      // console.log("There are "+this.tileCount+" tiles left.");
 
       player.rack = player.rack.concat(newTiles);
 
@@ -189,40 +146,41 @@ var Game = function(board, player1, player2) {
       //Add the score for the current player
       player.score += move.score;
 
-      self.emptyMoves = 0;
+      this.emptyMoves = 0;
     } else {
       // console.log("No moves available! "+player.name+" passes.");
-      self.emptyMoves++;
+      this.emptyMoves++;
     }
 
-    // console.log("Current score: "+self.players[0].name+": "+self.players[0].score+" | "+self.players[1].name+": "+self.players[1].score)
+    // console.log("Current score: "+this.players[0].name+": "+this.players[0].score+" | "+this.players[1].name+": "+this.players[1].score)
 
     //next player's up
-    self.toMove = self.toMove === 0 ? 1 : 0;
+    this.toMove = this.toMove === 0 ? 1 : 0;
 
-    self.moveCount++;
-  };
+    this.moveCount++;
+  }
 
-  self.endGame = function() {
-    for (var i = 0; i < self.players[0].rack.length; i++) {
-      var c = self.players[0].rack[i];
-      self.players[0].score -= letterValues[c];
-      self.players[1].score += letterValues[c];
+  endGame() {
+    for (let i = 0; i < this.players[0].rack.length; i++) {
+      const c = this.players[0].rack[i];
+      this.players[0].score -= letterValues[c];
+      this.players[1].score += letterValues[c];
     }
-    for (var i = 0; i < self.players[1].rack.length; i++) {
-      var c = self.players[1].rack[i];
-      self.players[1].score -= letterValues[c];
-      self.players[0].score += letterValues[c];
+
+    for (let i = 0; i < this.players[1].rack.length; i++) {
+      const c = this.players[1].rack[i];
+      this.players[1].score -= letterValues[c];
+      this.players[0].score += letterValues[c];
     }
 
     var winner = -1;
     var winMessage;
-    if (self.players[0].score > self.players[1].score) {
+    if (this.players[0].score > this.players[1].score) {
       winner = 0;
-      winMessage = self.players[0].name + ' wins!!';
-    } else if (self.players[1].score > self.players[0].score) {
+      winMessage = this.players[0].name + ' wins!!';
+    } else if (this.players[1].score > this.players[0].score) {
       winner = 1;
-      winMessage = self.players[1].name + ' wins!!';
+      winMessage = this.players[1].name + ' wins!!';
     } else {
       winner = 2;
       winMessage = "It's a draw!";
@@ -231,24 +189,21 @@ var Game = function(board, player1, player2) {
     console.log(
       winMessage +
         ' Final score: ' +
-        self.players[0].name +
+        this.players[0].name +
         ': ' +
-        self.players[0].score +
+        this.players[0].score +
         ' | ' +
-        self.players[1].name +
+        this.players[1].name +
         ': ' +
-        self.players[1].score
+        this.players[1].score
     );
 
     return {
       winner: winner,
-      scores: [self.players[0].score, self.players[1].score]
+      scores: [this.players[0].score, this.players[1].score]
     };
-  };
-
-  self.players[0].rack = self.pickTiles(7);
-  self.players[1].rack = self.pickTiles(7);
-};
+  }
+}
 
 class GameSet {
   constructor(player1, player2, numGames) {

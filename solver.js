@@ -1,55 +1,23 @@
-var Set = require('./set.js');
-var dict = require('./dict.json');
-var colors = require('colors/safe');
-var fs = require('fs');
-var module = module || {};
+const Set = require('./set.js');
+const dict = require('./dict.json');
+const colors = require('colors/safe');
+const fs = require('fs');
+const { multipliers, letterValues, emptyBoard } = require('./constants');
 
-var letterValues = {
-  a: 1,
-  b: 3,
-  c: 3,
-  d: 2,
-  e: 1,
-  f: 4,
-  g: 2,
-  h: 4,
-  i: 1,
-  j: 8,
-  k: 5,
-  l: 1,
-  m: 3,
-  n: 1,
-  o: 1,
-  p: 3,
-  q: 10,
-  r: 1,
-  s: 1,
-  t: 1,
-  u: 1,
-  v: 4,
-  w: 4,
-  x: 8,
-  y: 4,
-  z: 10
-};
-
-var mode = 'wwf'; // "scrabble" or "wwf"
-var mult = require('./multipliers.js')[mode];
-
-var rackSize = 7;
-
-var bingoBonus = 50;
+const mode = 'wwf'; // "scrabble" or "wwf"
+const mult = multipliers[mode];
+const rackSize = 7;
+const bingoBonus = 50;
 
 function trieSearch(root, word) {
   var node = root;
-  for (var i = 0; i < word.length; i++) {
-    var c = word.charAt(i);
-    if (!node[c]) {
-      return false;
-    } else {
-      node = node[c];
-    }
+
+  for (let i = 0; i < word.length; i++) {
+    const c = word.charAt(i);
+    if (!node[c]) return false;
+    node = node[c];
   }
+
   return node.$ === 1;
 }
 
@@ -57,9 +25,7 @@ function normalize(word) {
   return word
     .toLowerCase()
     .split('')
-    .filter(function(letter) {
-      return /[a-z]/.test(letter);
-    })
+    .filter(letter => /[a-z]/.test(letter))
     .join('');
 }
 
@@ -67,23 +33,6 @@ function isEmpty(cell) {
   return cell.length === 0;
 }
 
-var emptyBoard = [
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''] /* board[0][14] */,
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''] /* board[14][14] */
-];
 var boardSize = emptyBoard.length;
 var alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
@@ -230,6 +179,7 @@ function computeCrossChecks(board, row) {
 function findAnchorSquares(board, row) {
   var max = board.length;
   var anchors = new Set();
+
   for (var col = 0; col < board[row].length; col++) {
     if (isEmpty(board[row][col])) {
       if (
@@ -242,6 +192,7 @@ function findAnchorSquares(board, row) {
       }
     }
   }
+
   return anchors;
 }
 
@@ -368,6 +319,7 @@ function leftPart(
       lettersUsed
     );
   }
+
   if (limit > 0) {
     var keys = Object.keys(trieNode);
     for (var i = 0; i < keys.length; i++) {
@@ -453,6 +405,7 @@ function extendRight(
         bonusSquareCount: scoreResults.bonusSquareCount
       });
     }
+
     var keys = Object.keys(trieNode);
     for (var i = 0; i < keys.length; i++) {
       var l = keys[i];
