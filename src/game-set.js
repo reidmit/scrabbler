@@ -16,24 +16,16 @@ class GameSet {
 
   run() {
     for (let i = 1; i <= this.numGames; i++) {
+      const isEvenGame = i % 2 === 0;
+
       const p1 = new Player(this.players[0].name, this.players[0].strategy);
       const p2 = new Player(this.players[1].name, this.players[1].strategy);
       const board = emptyBoard.map(a => a.map(c => c));
 
-      let g;
-      if (i % 2 === 0) {
-        g = new Game(board, p1, p2);
-      } else {
-        g = new Game(board, p2, p1);
-      }
+      const g = isEvenGame ? new Game(board, p1, p2) : new Game(board, p2, p1);
+      const results = g.finish();
 
-      while (!g.isOver) {
-        g.makeMove();
-      }
-
-      const results = g.endGame();
-
-      if (i % 2 === 0) {
+      if (isEvenGame) {
         this.scoreHistory[0].push(results.scores[0]);
         this.scoreSums[0] += results.scores[0];
         this.scoreHistory[1].push(results.scores[1]);
@@ -103,7 +95,7 @@ class GameSet {
     const avg0 = this.scoreSums[0] / this.scoreHistory[0].length;
     const avg1 = this.scoreSums[1] / this.scoreHistory[1].length;
 
-    console.log('         | ' + this.players[0].name + ' | ' + this.players[1].name);
+    console.log('         |   ' + this.players[0].name + ' | ' + this.players[1].name);
     console.log('wins     |   ' + this.winCounts[0] + '   |   ' + this.winCounts[1]);
     console.log('draws    |   ' + this.drawCount + '   |   ' + this.drawCount);
     console.log('mean     |   ' + avg0 + '   |   ' + avg1);

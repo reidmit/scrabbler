@@ -1,53 +1,21 @@
 const AnchorSet = require('./anchor-set');
 const dict = require('../dict/dict.json');
-const fs = require('fs');
 const { multipliers, letterValues, emptyBoard } = require('./constants');
+const { trieSearch, transposeBoard, isEmpty, isCompletelyEmpty } = require('./helpers');
 
-const mode = 'wwf'; // "scrabble" or "wwf"
+const mode = 'scrabble'; // "scrabble" or "wwf"
 const mult = multipliers[mode];
 const rackSize = 7;
 const bingoBonus = 50;
 
-function trieSearch(root, word) {
-  var node = root;
-
-  for (let i = 0; i < word.length; i++) {
-    const c = word.charAt(i);
-    if (!node[c]) return false;
-    node = node[c];
-  }
-
-  return node.$ === 1;
-}
-
-function normalize(word) {
-  return word
-    .toLowerCase()
-    .split('')
-    .filter(letter => /[a-z]/.test(letter))
-    .join('');
-}
-
-function isEmpty(cell) {
-  return cell.length === 0;
-}
-
-var boardSize = emptyBoard.length;
-var alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
-
-var forEachCell = function(fun) {
-  for (var i = 0; i < board.length; i++) {
-    for (var j = 0; j < board[0].length; j++) {
-      fun(board[i][j], i, j);
-    }
-  }
-};
+const boardSize = emptyBoard.length;
+const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
 /* Given a board and a row, compute the crosschecks for the row.
    We also compute the additional score for each crosscheck. */
 function computeCrossChecks(board, row) {
   var rowData = [];
-  var alphabetAllZeros = alphabet.reduce(function(obj, char) {
+  var alphabetAllZeros = alphabet.reduce((obj, char) => {
     obj[char] = 0;
     return obj;
   }, {});
@@ -75,11 +43,13 @@ function computeCrossChecks(board, row) {
     var crossScore = 0;
     var above = '';
     var x = row - 1;
+
     while (x >= 0 && !isEmpty(board[x][col])) {
       above = board[x][col] + above;
       crossScore += letterValues[board[x][col]];
       x--;
     }
+
     var below = '';
     x = row + 1;
     while (x < boardSize && !isEmpty(board[x][col])) {
@@ -88,7 +58,7 @@ function computeCrossChecks(board, row) {
       x++;
     }
 
-    alphabet.forEach(function(letter) {
+    alphabet.forEach(letter => {
       var candidateWord = above + letter + below;
       if (trieSearch(dict, candidateWord)) {
         var wordScore =
@@ -96,8 +66,10 @@ function computeCrossChecks(board, row) {
         letters[letter] = wordScore;
       }
     });
+
     rowData[col] = letters;
   }
+
   return rowData;
 }
 
@@ -108,7 +80,7 @@ function findAnchorSquares(board, row) {
   const max = board.length;
   const anchors = new AnchorSet();
 
-  for (var col = 0; col < board[row].length; col++) {
+  for (let col = 0; col < board[row].length; col++) {
     if (isEmpty(board[row][col])) {
       if (
         (col + 1 < max && !isEmpty(board[row][col + 1])) ||
@@ -180,6 +152,7 @@ function scoreWord(board, word, direction, startRow, startCol, rowData) {
   if (placedLetters === rackSize) {
     sum += bingoBonus;
   }
+
   return {
     points: sum,
     lettersUsedCount: placedLetters,
@@ -375,16 +348,6 @@ function extendRight(
   }
 }
 
-function transpose(board) {
-  var newBoard = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
-  for (var i = 0; i < board.length; i++) {
-    for (var j = 0; j < board[0].length; j++) {
-      newBoard[j][i] = board[i][j];
-    }
-  }
-  return newBoard;
-}
-
 function printRowCrossChecks(rowData, r) {
   console.log('row ' + r + ' cross checks:');
   for (var i = 0; i < rowData.length; i++) {
@@ -399,6 +362,7 @@ function printRowCrossChecks(rowData, r) {
 function printMoves(moves) {
   var defaultLimit = 50;
   var limit = moves.length < defaultLimit ? moves.length : defaultLimit;
+
   for (var i = 0; i < limit; i++) {
     var r = moves[i].row > 9 ? '' + moves[i].row : ' ' + moves[i].row;
     var c = moves[i].col > 9 ? '' + moves[i].col : ' ' + moves[i].col;
@@ -423,17 +387,6 @@ function printMoves(moves) {
   }
 }
 
-function isCompletelyEmpty(board) {
-  for (var i = 0; i < board.length; i++) {
-    for (var j = 0; j < board[0].length; j++) {
-      if (!isEmpty(board[i][j])) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
 function sortByScore(a, b) {
   return b.score - a.score;
 }
@@ -442,6 +395,7 @@ function sortByBonus(a, b) {
   if (b.bonusSquareCount === a.bonusSquareCount) {
     return b.bonusSquareScore - a.bonusSquareScore;
   }
+
   return b.bonusSquareCount - a.bonusSquareCount;
 }
 
@@ -459,7 +413,7 @@ function run(gameBoard, rack, strategy) {
     var rowData = computeCrossChecks(gameBoard, 7); //we only care about the middle row
     leftPart(gameBoard, rowData, '', dict, limit, rowAnchorsList[0], rack, 'across', []);
 
-    var transposedBoard = transpose(gameBoard);
+    var transposedBoard = transposeBoard(gameBoard);
     var rowData = computeCrossChecks(transposedBoard, 7); //we only care about the middle row
     leftPart(transposedBoard, rowData, '', dict, limit, rowAnchorsList[0], rack, 'down', []);
   } else {
@@ -497,7 +451,7 @@ function run(gameBoard, rack, strategy) {
       }
     }
 
-    var transposedBoard = transpose(gameBoard);
+    var transposedBoard = transposeBoard(gameBoard);
 
     // printBoard(transposedBoard);
 
@@ -554,18 +508,5 @@ function run(gameBoard, rack, strategy) {
 
   return legalMoves;
 }
-
-var board = fs
-  .readFileSync('input.board', 'utf8')
-  .split('\n')
-  .map(function(line) {
-    return line.split('').map(function(chr) {
-      return chr === '.' ? '' : chr.toLowerCase();
-    });
-  });
-
-var rack = 'lcdridc';
-
-run(board, rack);
 
 module.exports.solve = run;
