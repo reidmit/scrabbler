@@ -1,17 +1,7 @@
 class AnchorSet {
-  constructor(initValues) {
+  constructor() {
     this.data = [];
     this.hashMap = {};
-
-    if (initValues) {
-      this.addAll(initValues);
-    }
-  }
-
-  addAll(values) {
-    for (let i = 0; i < values.length; i++) {
-      this.add(values[i]);
-    }
   }
 
   add(value) {
@@ -19,10 +9,6 @@ class AnchorSet {
 
     this.data.push(value);
     this.hashMap[value] = this.data.length - 1;
-  }
-
-  size() {
-    return this.data.length;
   }
 
   isEmpty() {
