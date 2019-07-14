@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/reid47/scrabbler/issues"
   },
-  "homepage": "https://github.com/reid47/scrabbler#readme"
+  "homepage": "https://github.com/reid47/scrabbler#readme",
+  "dependencies": {
+    "colors": "^1.3.3"
+  }
 }
