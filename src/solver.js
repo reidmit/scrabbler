@@ -1,4 +1,4 @@
-const Set = require('./set');
+const AnchorSet = require('./anchor-set');
 const dict = require('../dict/dict.json');
 const colors = require('colors/safe');
 const fs = require('fs');
@@ -177,8 +177,8 @@ function computeCrossChecks(board, row) {
 //given an array of filled squares (each represented
 //as a two-element array), a game board, and a row
 function findAnchorSquares(board, row) {
-  var max = board.length;
-  var anchors = new Set();
+  const max = board.length;
+  const anchors = new AnchorSet();
 
   for (var col = 0; col < board[row].length; col++) {
     if (isEmpty(board[row][col])) {
