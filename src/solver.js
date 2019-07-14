@@ -1,5 +1,5 @@
-const Set = require('./set.js');
-const dict = require('./dict.json');
+const Set = require('./set');
+const dict = require('../dict/dict.json');
 const colors = require('colors/safe');
 const fs = require('fs');
 const { multipliers, letterValues, emptyBoard } = require('./constants');
