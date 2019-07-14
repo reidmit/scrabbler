@@ -1,7 +1,6 @@
-var fs = require('fs');
-var solver = require('./solver.js');
+const solver = require('./solver.js');
 
-var emptyBoard = [
+const emptyBoard = [
   ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
   ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
   ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
@@ -19,7 +18,7 @@ var emptyBoard = [
   ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
 ];
 
-var letterValues = {
+const letterValues = {
   a: 1,
   b: 3,
   c: 3,
@@ -48,12 +47,14 @@ var letterValues = {
   z: 10
 };
 
-var Player = function(name, strategy) {
-  this.name = name;
-  this.score = 0;
-  this.rack = [];
-  this.strategy = strategy || 'points'; //"points" or "bonus", default "points"
-};
+class Player {
+  constructor(name, strategy) {
+    this.name = name;
+    this.score = 0;
+    this.rack = [];
+    this.strategy = strategy || 'points'; //"points" or "bonus", default "points"
+  }
+}
 
 var Game = function(board, player1, player2) {
   var self = this;
@@ -249,130 +250,115 @@ var Game = function(board, player1, player2) {
   self.players[1].rack = self.pickTiles(7);
 };
 
-var GameSet = function(player1, player2, numGames) {
-  var self = this;
+class GameSet {
+  constructor(player1, player2, numGames) {
+    this.players = [player1, player2];
+    this.numGames = numGames;
+    this.scoreHistory = [[], []];
+    this.scoreSums = [0, 0];
+    this.highScores = [0, 0];
+    this.lowScores = [9999, 9999];
+    this.winCounts = [0, 0];
+    this.drawCount = 0;
+  }
 
-  self.players = [player1, player2];
-  self.numGames = numGames;
-  self.scoreHistory = [[], []];
-  self.scoreSums = [0, 0];
-  self.highScores = [0, 0];
-  self.lowScores = [9999, 9999];
-  self.winCounts = [0, 0];
-  self.drawCount = 0;
+  run() {
+    for (let i = 1; i <= this.numGames; i++) {
+      const p1 = new Player(this.players[0].name, this.players[0].strategy);
+      const p2 = new Player(this.players[1].name, this.players[1].strategy);
+      const board = emptyBoard.map(a => a.map(c => c));
 
-  self.run = function() {
-    for (var i = 1; i <= self.numGames; i++) {
-      var p1 = new Player(self.players[0].name, self.players[0].strategy);
-      var p2 = new Player(self.players[1].name, self.players[1].strategy);
-
-      var board = emptyBoard.map(function(a) {
-        return a.map(function(c) {
-          return c;
-        });
-      });
-
-      var g;
+      let g;
       if (i % 2 === 0) {
         g = new Game(board, p1, p2);
       } else {
         g = new Game(board, p2, p1);
       }
+
       while (!g.isOver) {
         g.makeMove();
       }
-      var results = g.endGame();
+
+      const results = g.endGame();
 
       if (i % 2 === 0) {
-        self.scoreHistory[0].push(results.scores[0]);
-        self.scoreSums[0] += results.scores[0];
-        self.scoreHistory[1].push(results.scores[1]);
-        self.scoreSums[1] += results.scores[1];
+        this.scoreHistory[0].push(results.scores[0]);
+        this.scoreSums[0] += results.scores[0];
+        this.scoreHistory[1].push(results.scores[1]);
+        this.scoreSums[1] += results.scores[1];
 
-        if (results.scores[0] < self.lowScores[0]) {
-          self.lowScores[0] = results.scores[0];
+        if (results.scores[0] < this.lowScores[0]) {
+          this.lowScores[0] = results.scores[0];
         }
-        if (results.scores[1] < self.lowScores[1]) {
-          self.lowScores[1] = results.scores[1];
+
+        if (results.scores[1] < this.lowScores[1]) {
+          this.lowScores[1] = results.scores[1];
         }
-        if (results.scores[0] > self.highScores[0]) {
-          self.highScores[0] = results.scores[0];
+
+        if (results.scores[0] > this.highScores[0]) {
+          this.highScores[0] = results.scores[0];
         }
-        if (results.scores[1] > self.highScores[1]) {
-          self.highScores[1] = results.scores[1];
+
+        if (results.scores[1] > this.highScores[1]) {
+          this.highScores[1] = results.scores[1];
         }
 
         if (results.winner === 2) {
-          self.drawCount++;
+          this.drawCount++;
         } else if (results.winner === 0) {
-          self.winCounts[0]++;
+          this.winCounts[0]++;
         } else {
-          self.winCounts[1]++;
+          this.winCounts[1]++;
         }
       } else {
-        self.scoreHistory[1].push(results.scores[0]);
-        self.scoreSums[1] += results.scores[0];
-        self.scoreHistory[0].push(results.scores[1]);
-        self.scoreSums[0] += results.scores[1];
+        this.scoreHistory[1].push(results.scores[0]);
+        this.scoreSums[1] += results.scores[0];
+        this.scoreHistory[0].push(results.scores[1]);
+        this.scoreSums[0] += results.scores[1];
 
-        if (results.scores[0] < self.lowScores[1]) {
-          self.lowScores[1] = results.scores[0];
+        if (results.scores[0] < this.lowScores[1]) {
+          this.lowScores[1] = results.scores[0];
         }
-        if (results.scores[1] < self.lowScores[0]) {
-          self.lowScores[0] = results.scores[1];
+
+        if (results.scores[1] < this.lowScores[0]) {
+          this.lowScores[0] = results.scores[1];
         }
-        if (results.scores[0] > self.highScores[1]) {
-          self.highScores[1] = results.scores[0];
+
+        if (results.scores[0] > this.highScores[1]) {
+          this.highScores[1] = results.scores[0];
         }
-        if (results.scores[1] > self.highScores[0]) {
-          self.highScores[0] = results.scores[1];
+
+        if (results.scores[1] > this.highScores[0]) {
+          this.highScores[0] = results.scores[1];
         }
 
         if (results.winner === 2) {
-          self.drawCount++;
+          this.drawCount++;
         } else if (results.winner === 0) {
-          self.winCounts[1]++;
+          this.winCounts[1]++;
         } else {
-          self.winCounts[0]++;
+          this.winCounts[0]++;
         }
       }
-      console.log('completed game ' + i + ' of ' + self.numGames);
+
+      console.log('completed game ' + i + ' of ' + this.numGames);
     }
-    self.finishSet();
-  };
 
-  self.finishSet = function() {
-    var avg0 = self.scoreSums[0] / self.scoreHistory[0].length;
-    var avg1 = self.scoreSums[1] / self.scoreHistory[1].length;
-    console.log('         | ' + self.players[0].name + ' | ' + self.players[1].name);
-    console.log('wins     |   ' + self.winCounts[0] + '   |   ' + self.winCounts[1]);
-    console.log('draws    |   ' + self.drawCount + '   |   ' + self.drawCount);
+    this.finishSet();
+  }
+
+  finishSet() {
+    const avg0 = this.scoreSums[0] / this.scoreHistory[0].length;
+    const avg1 = this.scoreSums[1] / this.scoreHistory[1].length;
+
+    console.log('         | ' + this.players[0].name + ' | ' + this.players[1].name);
+    console.log('wins     |   ' + this.winCounts[0] + '   |   ' + this.winCounts[1]);
+    console.log('draws    |   ' + this.drawCount + '   |   ' + this.drawCount);
     console.log('mean     |   ' + avg0 + '   |   ' + avg1);
-    console.log('hi score |   ' + self.highScores[0] + '   |   ' + self.highScores[1]);
-    console.log('lo score |   ' + self.lowScores[0] + '   |   ' + self.lowScores[1]);
-  };
-};
+    console.log('hi score |   ' + this.highScores[0] + '   |   ' + this.highScores[1]);
+    console.log('lo score |   ' + this.lowScores[0] + '   |   ' + this.lowScores[1]);
+  }
+}
 
-var board = emptyBoard;
-
-// board = fs.readFileSync('input.board', 'utf8').split('\n').map(function(line) {
-//     return line.split("").map(function(chr) {
-//         return chr === "." ? "" : chr.toLowerCase();
-//     });
-// });
-
-var rack = 'parents';
-
-var gs = new GameSet(new Player('Reid', 'bonus'), new Player('Jim', 'bonus'), 1000);
-gs.run();
-
-// var g = new Game(board, new Player("Reid", "bonus"), new Player("Jim", "points"));
-
-// while (!g.isOver) {
-//     g.makeMove();
-// }
-// g.endGame();
-
-// solver.print(board);
-
-// solver.solve(board, rack, "bonus");
+const gameSet = new GameSet(new Player('Reid', 'bonus'), new Player('Jim', 'bonus'), 1);
+gameSet.run();
